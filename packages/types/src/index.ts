@@ -237,7 +237,9 @@ export enum RevertReason {
     TxFullyConfirmed = 'TX_FULLY_CONFIRMED',
     TxNotFullyConfirmed = 'TX_NOT_FULLY_CONFIRMED',
     TimeLockIncomplete = 'TIME_LOCK_INCOMPLETE',
-    AtLeastOneAddressHasZeroBalance = 'AT_LEAST_ONE_ADDRESS_HAS_ZERO_BALANCE',
+    InvalidOrBlockedExchangeSelector = 'INVALID_OR_BLOCKED_EXCHANGE_SELECTOR',
+    BalanceQueryFailed = 'BALANCE_QUERY_FAILED',
+    AtLeastOneAddressDoesNotMeetBalanceThreshold= 'AT_LEAST_ONE_ADDRESS_DOES_NOT_MEET_BALANCE_THRESHOLD',
 }
 
 export enum StatusCodes {
