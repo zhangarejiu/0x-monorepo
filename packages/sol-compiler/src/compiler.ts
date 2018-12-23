@@ -134,6 +134,15 @@ export class Compiler {
         await createDirIfDoesNotExistAsync(constants.SOLC_BIN_DIR);
         await this._compileContractsAsync(this._getContractNamesToCompile(), true);
     }
+
+    public async concatSourceAsync(): Promise<void> {
+        const contractNames = this._getContractNamesToCompile();
+        for (const contractName of contractNames) {
+            // const sourceCode = this._getConcatenatedSourceCode(contractName);
+            console.log(contractName);
+            // console.log(sourceCode);
+        }
+    }
     /**
      * Compiles Solidity files specified during instantiation, and returns the
      * compiler output given by solc.  Return value is an array of outputs:
@@ -400,4 +409,169 @@ export class Compiler {
         await fsWrapper.writeFileAsync(currentArtifactPath, artifactString);
         logUtils.warn(`${contractName} artifact saved!`);
     }
+    // /**
+    //  * For the given @param contractPath, populates JSON objects to be used in the ContractVersionData interface's
+    //  * properties `sources` (source code file names mapped to ID numbers) and `sourceCodes` (source code content of
+    //  * contracts) for that contract.  The source code pointed to by contractPath is read and parsed directly (via
+    //  * `this._resolver.resolve().source`), as are its imports, recursively.  The ID numbers for @return `sources` are
+    //  * taken from the corresponding ID's in @param fullSources, and the content for @return sourceCodes is read from
+    //  * disk (via the aforementioned `resolver.source`).
+    //  */
+    // private _getSourcesWithDependencies(
+    //     contractPath: string,
+    //     fullSources: { [sourceName: string]: { id: number } },
+    // ): { sourceCodes: { [sourceName: string]: string }; sources: { [sourceName: string]: { id: number } } } {
+    //     const sources = { [contractPath]: { id: fullSources[contractPath].id } };
+    //     const sourceCodes = { [contractPath]: this._resolver.resolve(contractPath).source };
+    //     this._recursivelyGatherDependencySources(
+    //         contractPath,
+    //         sourceCodes[contractPath],
+    //         fullSources,
+    //         sources,
+    //         sourceCodes,
+    //     );
+    //     return { sourceCodes, sources };
+    // }
+    // private _recursivelyGatherDependencySources(
+    //     contractPath: string,
+    //     contractSource: string,
+    //     fullSources: { [sourceName: string]: { id: number } },
+    //     sourcesToAppendTo: { [sourceName: string]: { id: number } },
+    //     sourceCodesToAppendTo: { [sourceName: string]: string },
+    // ): void {
+    //     const importStatementMatches = contractSource.match(/\nimport[^;]*;/g);
+    //     if (importStatementMatches === null) {
+    //         return;
+    //     }
+    //     for (const importStatementMatch of importStatementMatches) {
+    //         const importPathMatches = importStatementMatch.match(/\"([^\"]*)\"/);
+    //         if (importPathMatches === null || importPathMatches.length === 0) {
+    //             continue;
+    //         }
+
+    //         let importPath = importPathMatches[1];
+    //         // HACK(ablrow): We have, e.g.:
+    //         //
+    //         //      importPath   = "../../utils/LibBytes/LibBytes.sol"
+    //         //      contractPath = "2.0.0/protocol/AssetProxyOwner/AssetProxyOwner.sol"
+    //         //
+    //         // Resolver doesn't understand "../" so we want to pass
+    //         // "2.0.0/utils/LibBytes/LibBytes.sol" to resolver.
+    //         //
+    //         // This hack involves using path.resolve. But path.resolve returns
+    //         // absolute directories by default. We trick it into thinking that
+    //         // contractPath is a root directory by prepending a '/' and then
+    //         // removing the '/' the end.
+    //         //
+    //         //      path.resolve("/a/b/c", ""../../d/e") === "/a/d/e"
+    //         //
+    //         const lastPathSeparatorPos = contractPath.lastIndexOf('/');
+    //         const contractFolder = lastPathSeparatorPos === -1 ? '' : contractPath.slice(0, lastPathSeparatorPos + 1);
+    //         if (importPath.startsWith('.')) {
+    //             /**
+    //              * Some imports path are relative ("../Token.sol", "./Wallet.sol")
+    //              * while others are absolute ("Token.sol", "@0x/contracts/Wallet.sol")
+    //              * And we need to append the base path for relative imports.
+    //              */
+    //             importPath = path.resolve(`/${contractFolder}`, importPath).replace('/', '');
+    //         }
+
+    //         if (_.isUndefined(sourcesToAppendTo[importPath])) {
+    //             sourcesToAppendTo[importPath] = { id: fullSources[importPath].id };
+    //             sourceCodesToAppendTo[importPath] = this._resolver.resolve(importPath).source;
+
+    //             this._recursivelyGatherDependencySources(
+    //                 importPath,
+    //                 this._resolver.resolve(importPath).source,
+    //                 fullSources,
+    //                 sourcesToAppendTo,
+    //                 sourceCodesToAppendTo,
+    //             );
+    //         }
+    //     }
+    // }
+    // private _compile(solcInstance: solc.SolcInstance, standardInput: solc.StandardInput): solc.StandardOutput {
+    //     const compiled: solc.StandardOutput = JSON.parse(
+    //         solcInstance.compileStandardWrapper(JSON.stringify(standardInput), importPath => {
+    //             const sourceCodeIfExists = this._resolver.resolve(importPath);
+    //             return { contents: sourceCodeIfExists.source };
+    //         }),
+    //     );
+    //     if (!_.isUndefined(compiled.errors)) {
+    //         const SOLIDITY_WARNING = 'warning';
+    //         const errors = _.filter(compiled.errors, entry => entry.severity !== SOLIDITY_WARNING);
+    //         const warnings = _.filter(compiled.errors, entry => entry.severity === SOLIDITY_WARNING);
+    //         if (!_.isEmpty(errors)) {
+    //             errors.forEach(error => {
+    //                 const normalizedErrMsg = getNormalizedErrMsg(error.formattedMessage || error.message);
+    //                 logUtils.warn(chalk.red(normalizedErrMsg));
+    //             });
+    //             throw new Error('Compilation errors encountered');
+    //         } else {
+    //             warnings.forEach(warning => {
+    //                 const normalizedWarningMsg = getNormalizedErrMsg(warning.formattedMessage || warning.message);
+    //                 logUtils.warn(chalk.yellow(normalizedWarningMsg));
+    //             });
+    //         }
+    //     }
+    //     return compiled;
+    // }
+
+    // private _getConcatenatedSourceCode(importPath: string): string {
+    //     const seen: string[] = [];
+    //     this._findSourceDependencyTree(importPath, seen);
+    //     const sources = [];
+    //     for (const file of seen) {
+    //         const contractSource = this._resolver.resolve(file);
+    //         sources.push(contractSource.source);
+    //     }
+    //     const concatenatedSourceCode = sources.join('\n');
+    //     return concatenatedSourceCode;
+    // }
+
+    // private _findSourceDependencyTree(importPath: string, seen: string[] = []): any {
+    //     const contractSource = this._resolver.resolve(importPath);
+    //     const contractDependencies = parseDependencies(contractSource);
+    //     if (seen.indexOf(contractSource.path) !== -1) {
+    //         return undefined;
+    //     }
+    //     let dependencyTree: any;
+    //     if (contractDependencies.length === 0) {
+    //         dependencyTree = {
+    //             [contractSource.path]: {},
+    //         };
+    //     } else {
+    //         const dependencySourceTree = _.reduce(
+    //             contractDependencies,
+    //             (prev, curr) => {
+    //                 return { ...prev, ...this._findSourceDependencyTree(curr, seen) };
+    //             },
+    //             {},
+    //         );
+    //         dependencyTree = {
+    //             [contractSource.path]: dependencySourceTree,
+    //         };
+    //     }
+    //     seen.push(contractSource.path);
+    //     return dependencyTree;
+    // }
+    // /**
+    //  * Gets the source tree hash for a file and its dependencies.
+    //  * @param fileName Name of contract file.
+    //  */
+    // private _getSourceTreeHash(importPath: string): Buffer {
+    //     const contractSource = this._resolver.resolve(importPath);
+    //     const dependencies = parseDependencies(contractSource);
+    //     const sourceHash = ethUtil.sha3(contractSource.source);
+    //     if (dependencies.length === 0) {
+    //         return sourceHash;
+    //     } else {
+    //         const dependencySourceTreeHashes = _.map(dependencies, (dependency: string) =>
+    //             this._getSourceTreeHash(dependency),
+    //         );
+    //         const sourceTreeHashesBuffer = Buffer.concat([sourceHash, ...dependencySourceTreeHashes]);
+    //         const sourceTreeHash = ethUtil.sha3(sourceTreeHashesBuffer);
+    //         return sourceTreeHash;
+    //     }
+    // }
 }

@@ -29,6 +29,7 @@ const SEPARATOR = ',';
             alias: 'w',
             default: false,
         })
+        .boolean('concat')
         .help().argv;
     const contracts = _.isUndefined(argv.contracts)
         ? undefined
@@ -43,6 +44,8 @@ const SEPARATOR = ',';
     const compiler = new Compiler(opts);
     if (argv.watch) {
         await compiler.watchAsync();
+    } else if (argv.concat) {
+        await compiler.concatSourceAsync();
     } else {
         await compiler.compileAsync();
     }
