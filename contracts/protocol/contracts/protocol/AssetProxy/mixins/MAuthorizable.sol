@@ -20,10 +20,7 @@ pragma solidity ^0.4.24;
 
 import "@0x/contracts-interfaces/contracts/protocol/AssetProxy/IAuthorizable.sol";
 
-
-contract MAuthorizable is
-    IAuthorizable
-{
+contract MAuthorizable is IAuthorizable {
     // Event logged when a new address is authorized.
     event AuthorizedAddressAdded(
         address indexed target,
@@ -37,5 +34,8 @@ contract MAuthorizable is
     );
 
     /// @dev Only authorized addresses can invoke functions with this modifier.
-    modifier onlyAuthorized { revert(); _; }
+    modifier onlyAuthorized {
+        revert();
+        _;
+    }
 }

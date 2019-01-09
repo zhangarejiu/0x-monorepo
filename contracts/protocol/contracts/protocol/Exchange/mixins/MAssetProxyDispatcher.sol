@@ -20,14 +20,11 @@ pragma solidity ^0.4.24;
 
 import "@0x/contracts-interfaces/contracts/protocol/Exchange/IAssetProxyDispatcher.sol";
 
-
-contract MAssetProxyDispatcher is
-    IAssetProxyDispatcher
-{
+contract MAssetProxyDispatcher is IAssetProxyDispatcher {
     // Logs registration of new asset proxy
     event AssetProxyRegistered(
-        bytes4 id,              // Id of new registered AssetProxy.
-        address assetProxy      // Address of new registered AssetProxy.
+        bytes4 id, // Id of new registered AssetProxy.
+        address assetProxy // Address of new registered AssetProxy.
     );
 
     /// @dev Forwards arguments to assetProxy and calls `transferFrom`. Either succeeds or throws.
@@ -40,6 +37,5 @@ contract MAssetProxyDispatcher is
         address from,
         address to,
         uint256 amount
-    )
-        internal;
+    ) internal;
 }

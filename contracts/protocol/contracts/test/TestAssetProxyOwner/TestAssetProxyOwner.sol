@@ -20,12 +20,9 @@ pragma solidity 0.4.24;
 
 import "../../protocol/AssetProxyOwner/AssetProxyOwner.sol";
 
-
 // solhint-disable no-empty-blocks
-contract TestAssetProxyOwner is
-    AssetProxyOwner
-{
-    constructor (
+contract TestAssetProxyOwner is AssetProxyOwner {
+    constructor(
         address[] memory _owners,
         address[] memory _assetProxyContracts,
         uint256 _required,
@@ -34,8 +31,10 @@ contract TestAssetProxyOwner is
         public
         AssetProxyOwner(_owners, _assetProxyContracts, _required, _secondsTimeLocked)
     {}
-    
-    function testValidRemoveAuthorizedAddressAtIndexTx(uint256 id)
+
+    function testValidRemoveAuthorizedAddressAtIndexTx(
+        uint256 id
+    )
         public
         view
         validRemoveAuthorizedAddressAtIndexTx(id)
@@ -44,15 +43,15 @@ contract TestAssetProxyOwner is
         // Do nothing. We expect reverts through the modifier
         return true;
     }
-    
+
     /// @dev Compares first 4 bytes of byte array to `removeAuthorizedAddressAtIndex` function selector.
     /// @param data Transaction data.
     /// @return Successful if data is a call to `removeAuthorizedAddressAtIndex`.
-    function isFunctionRemoveAuthorizedAddressAtIndex(bytes memory data)
-        public
-        pure
-        returns (bool)
-    {
-        return data.readBytes4(0) == REMOVE_AUTHORIZED_ADDRESS_AT_INDEX_SELECTOR;
+    function isFunctionRemoveAuthorizedAddressAtIndex(
+        bytes memory data
+    ) public pure returns (bool) {
+        return data.readBytes4(
+            0
+        ) == REMOVE_AUTHORIZED_ADDRESS_AT_INDEX_SELECTOR;
     }
 }

@@ -25,19 +25,14 @@ import "./mixins/MTransactions.sol";
 import "@0x/contracts-interfaces/contracts/protocol/Exchange/IWallet.sol";
 import "@0x/contracts-interfaces/contracts/protocol/Exchange/IValidator.sol";
 
-
-contract MixinSignatureValidator is
-    ReentrancyGuard,
-    MSignatureValidator,
-    MTransactions
-{
+contract MixinSignatureValidator is ReentrancyGuard, MSignatureValidator, MTransactions {
     using LibBytes for bytes;
-    
+
     // Mapping of hash => signer => signed
-    mapping (bytes32 => mapping (address => bool)) public preSigned;
+    mapping(bytes32 => mapping(address => bool)) public preSigned;
 
     // Mapping of signer => validator => approved
-    mapping (address => mapping (address => bool)) public allowedValidators;
+    mapping(address => mapping(address => bool)) public allowedValidators;
 
     /// @dev Approves a hash on-chain using any valid signature type.
     ///      After presigning a hash, the preSign signature type will become valid for that hash and signer.
@@ -47,9 +42,7 @@ contract MixinSignatureValidator is
         bytes32 hash,
         address signerAddress,
         bytes signature
-    )
-        external
-    {
+    ) external {
         if (signerAddress != msg.sender) {
             require(
                 isValidSignature(
@@ -69,10 +62,7 @@ contract MixinSignatureValidator is
     function setSignatureValidatorApproval(
         address validatorAddress,
         bool approval
-    )
-        external
-        nonReentrant
-    {
+    ) external nonReentrant {
         address signerAddress = getCurrentContextAddress();
         allowedValidators[signerAddress][validatorAddress] = approval;
         emit SignatureValidatorApproval(
@@ -91,26 +81,28 @@ contract MixinSignatureValidator is
         bytes32 hash,
         address signerAddress,
         bytes memory signature
-    )
-        public
-        view
-        returns (bool isValid)
-    {
+    ) public view returns (bool isValid) {
         require(
             signature.length > 0,
             "LENGTH_GREATER_THAN_0_REQUIRED"
         );
 
         // Pop last byte off of signature byte array.
-        uint8 signatureTypeRaw = uint8(signature.popLastByte());
+        uint8 signatureTypeRaw = uint8(
+            signature.popLastByte()
+        );
 
         // Ensure signature is supported
         require(
-            signatureTypeRaw < uint8(SignatureType.NSignatureTypes),
+            signatureTypeRaw < uint8(
+                SignatureType.NSignatureTypes
+            ),
             "SIGNATURE_UNSUPPORTED"
         );
 
-        SignatureType signatureType = SignatureType(signatureTypeRaw);
+        SignatureType signatureType = SignatureType(
+            signatureTypeRaw
+        );
 
         // Variables are not scoped in Solidity.
         uint8 v;
@@ -126,10 +118,11 @@ contract MixinSignatureValidator is
         if (signatureType == SignatureType.Illegal) {
             revert("SIGNATURE_ILLEGAL");
 
-        // Always invalid signature.
-        // Like Illegal, this is always implicitly available and therefore
-        // offered explicitly. It can be implicitly created by providing
-        // a correctly formatted but incorrect signature.
+            // Always invalid signature.
+            // Like Illegal, this is always implicitly available and therefore
+            // offered explicitly. It can be implicitly created by providing
+            // a correctly formatted but incorrect signature.
+
         } else if (signatureType == SignatureType.Invalid) {
             require(
                 signature.length == 0,
@@ -138,7 +131,8 @@ contract MixinSignatureValidator is
             isValid = false;
             return isValid;
 
-        // Signature using EIP712
+            // Signature using EIP712
+
         } else if (signatureType == SignatureType.EIP712) {
             require(
                 signature.length == 65,
@@ -147,16 +141,12 @@ contract MixinSignatureValidator is
             v = uint8(signature[0]);
             r = signature.readBytes32(1);
             s = signature.readBytes32(33);
-            recovered = ecrecover(
-                hash,
-                v,
-                r,
-                s
-            );
+            recovered = ecrecover(hash, v, r, s);
             isValid = signerAddress == recovered;
             return isValid;
 
-        // Signed using web3.eth_sign
+            // Signed using web3.eth_sign
+
         } else if (signatureType == SignatureType.EthSign) {
             require(
                 signature.length == 65,
@@ -166,10 +156,12 @@ contract MixinSignatureValidator is
             r = signature.readBytes32(1);
             s = signature.readBytes32(33);
             recovered = ecrecover(
-                keccak256(abi.encodePacked(
-                    "\x19Ethereum Signed Message:\n32",
-                    hash
-                )),
+                keccak256(
+                    abi.encodePacked(
+                        "\x19Ethereum Signed Message:\n32",
+                        hash
+                    )
+                ),
                 v,
                 r,
                 s
@@ -177,8 +169,9 @@ contract MixinSignatureValidator is
             isValid = signerAddress == recovered;
             return isValid;
 
-        // Signature verified by wallet contract.
-        // If used with an order, the maker of the order is the wallet contract.
+            // Signature verified by wallet contract.
+            // If used with an order, the maker of the order is the wallet contract.
+
         } else if (signatureType == SignatureType.Wallet) {
             isValid = isValidWalletSignature(
                 hash,
@@ -187,17 +180,20 @@ contract MixinSignatureValidator is
             );
             return isValid;
 
-        // Signature verified by validator contract.
-        // If used with an order, the maker of the order can still be an EOA.
-        // A signature using this type should be encoded as:
-        // | Offset   | Length | Contents                        |
-        // | 0x00     | x      | Signature to validate           |
-        // | 0x00 + x | 20     | Address of validator contract   |
-        // | 0x14 + x | 1      | Signature type is always "\x06" |
+            // Signature verified by validator contract.
+            // If used with an order, the maker of the order can still be an EOA.
+            // A signature using this type should be encoded as:
+            // | Offset   | Length | Contents                        |
+            // | 0x00     | x      | Signature to validate           |
+            // | 0x00 + x | 20     | Address of validator contract   |
+            // | 0x14 + x | 1      | Signature type is always "\x06" |
+
         } else if (signatureType == SignatureType.Validator) {
             // Pop last 20 bytes off of signature byte array.
-            address validatorAddress = signature.popLast20Bytes();
-            
+            address validatorAddress = signature.popLast20Bytes(
+
+            );
+
             // Ensure signer has approved validator.
             if (!allowedValidators[signerAddress][validatorAddress]) {
                 return false;
@@ -210,7 +206,8 @@ contract MixinSignatureValidator is
             );
             return isValid;
 
-        // Signer signed hash previously using the preSign function.
+            // Signer signed hash previously using the preSign function.
+
         } else if (signatureType == SignatureType.PreSigned) {
             isValid = preSigned[hash][signerAddress];
             return isValid;
@@ -234,40 +231,47 @@ contract MixinSignatureValidator is
         bytes32 hash,
         address walletAddress,
         bytes signature
-    )
-        internal
-        view
-        returns (bool isValid)
-    {
+    ) internal view returns (bool isValid) {
         bytes memory callData = abi.encodeWithSelector(
-            IWallet(walletAddress).isValidSignature.selector,
+            IWallet(
+                walletAddress
+            ).isValidSignature.selector,
             hash,
             signature
         );
         assembly {
             let cdStart := add(callData, 32)
             let success := staticcall(
-                gas,              // forward all gas
-                walletAddress,    // address of Wallet contract
-                cdStart,          // pointer to start of input
-                mload(callData),  // length of input
-                cdStart,          // write output over input
-                32                // output size is 32 bytes
+                gas, // forward all gas
+                walletAddress, // address of Wallet contract
+                cdStart, // pointer to start of input
+                mload(callData), // length of input
+                cdStart, // write output over input
+                32 // output size is 32 bytes
             )
 
             switch success
-            case 0 {
-                // Revert with `Error("WALLET_ERROR")`
-                mstore(0, 0x08c379a000000000000000000000000000000000000000000000000000000000)
-                mstore(32, 0x0000002000000000000000000000000000000000000000000000000000000000)
-                mstore(64, 0x0000000c57414c4c45545f4552524f5200000000000000000000000000000000)
-                mstore(96, 0)
-                revert(0, 100)
-            }
-            case 1 {
-                // Signature is valid if call did not revert and returned true
-                isValid := mload(cdStart)
-            }
+                case 0 {
+                    // Revert with `Error("WALLET_ERROR")`
+                    mstore(
+                        0,
+                        0x08c379a000000000000000000000000000000000000000000000000000000000
+                    )
+                    mstore(
+                        32,
+                        0x0000002000000000000000000000000000000000000000000000000000000000
+                    )
+                    mstore(
+                        64,
+                        0x0000000c57414c4c45545f4552524f5200000000000000000000000000000000
+                    )
+                    mstore(96, 0)
+                    revert(0, 100)
+                }
+                case 1 {
+                    // Signature is valid if call did not revert and returned true
+                    isValid := mload(cdStart)
+                }
         }
         return isValid;
     }
@@ -283,13 +287,11 @@ contract MixinSignatureValidator is
         bytes32 hash,
         address signerAddress,
         bytes signature
-    )
-        internal
-        view
-        returns (bool isValid)
-    {
+    ) internal view returns (bool isValid) {
         bytes memory callData = abi.encodeWithSelector(
-            IValidator(signerAddress).isValidSignature.selector,
+            IValidator(
+                signerAddress
+            ).isValidSignature.selector,
             hash,
             signerAddress,
             signature
@@ -297,27 +299,36 @@ contract MixinSignatureValidator is
         assembly {
             let cdStart := add(callData, 32)
             let success := staticcall(
-                gas,               // forward all gas
-                validatorAddress,  // address of Validator contract
-                cdStart,           // pointer to start of input
-                mload(callData),   // length of input
-                cdStart,           // write output over input
-                32                 // output size is 32 bytes
+                gas, // forward all gas
+                validatorAddress, // address of Validator contract
+                cdStart, // pointer to start of input
+                mload(callData), // length of input
+                cdStart, // write output over input
+                32 // output size is 32 bytes
             )
 
             switch success
-            case 0 {
-                // Revert with `Error("VALIDATOR_ERROR")`
-                mstore(0, 0x08c379a000000000000000000000000000000000000000000000000000000000)
-                mstore(32, 0x0000002000000000000000000000000000000000000000000000000000000000)
-                mstore(64, 0x0000000f56414c494441544f525f4552524f5200000000000000000000000000)
-                mstore(96, 0)
-                revert(0, 100)
-            }
-            case 1 {
-                // Signature is valid if call did not revert and returned true
-                isValid := mload(cdStart)
-            }
+                case 0 {
+                    // Revert with `Error("VALIDATOR_ERROR")`
+                    mstore(
+                        0,
+                        0x08c379a000000000000000000000000000000000000000000000000000000000
+                    )
+                    mstore(
+                        32,
+                        0x0000002000000000000000000000000000000000000000000000000000000000
+                    )
+                    mstore(
+                        64,
+                        0x0000000f56414c494441544f525f4552524f5200000000000000000000000000
+                    )
+                    mstore(96, 0)
+                    revert(0, 100)
+                }
+                case 1 {
+                    // Signature is valid if call did not revert and returned true
+                    isValid := mload(cdStart)
+                }
         }
         return isValid;
     }

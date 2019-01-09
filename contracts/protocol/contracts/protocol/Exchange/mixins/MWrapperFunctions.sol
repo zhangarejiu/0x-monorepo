@@ -23,10 +23,7 @@ import "@0x/contracts-libs/contracts/libs/LibOrder.sol";
 import "@0x/contracts-libs/contracts/libs/LibFillResults.sol";
 import "@0x/contracts-interfaces/contracts/protocol/Exchange/IWrapperFunctions.sol";
 
-
-contract MWrapperFunctions is 
-    IWrapperFunctions
-{
+contract MWrapperFunctions is IWrapperFunctions {
     /// @dev Fills the input order. Reverts if exact takerAssetFillAmount not filled.
     /// @param order LibOrder.Order struct containing order specifications.
     /// @param takerAssetFillAmount Desired amount of takerAsset to sell.
@@ -37,5 +34,7 @@ contract MWrapperFunctions is
         bytes memory signature
     )
         internal
-        returns (LibFillResults.FillResults memory fillResults);
+        returns (
+        LibFillResults.FillResults memory fillResults
+    );
 }

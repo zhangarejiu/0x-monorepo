@@ -21,25 +21,13 @@ pragma solidity 0.4.24;
 import "../../protocol/Exchange/MixinSignatureValidator.sol";
 import "../../protocol/Exchange/MixinTransactions.sol";
 
-
-contract TestSignatureValidator is
-    MixinSignatureValidator,
-    MixinTransactions
-{
+contract TestSignatureValidator is MixinSignatureValidator, MixinTransactions {
     function publicIsValidSignature(
         bytes32 hash,
         address signer,
         bytes memory signature
-    )
-        public
-        view
-        returns (bool isValid)
-    {
-        isValid = isValidSignature(
-            hash,
-            signer,
-            signature
-        );
+    ) public view returns (bool isValid) {
+        isValid = isValidSignature(hash, signer, signature);
         return isValid;
     }
 }

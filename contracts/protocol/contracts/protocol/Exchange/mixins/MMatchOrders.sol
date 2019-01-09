@@ -22,19 +22,14 @@ import "@0x/contracts-libs/contracts/libs/LibOrder.sol";
 import "@0x/contracts-libs/contracts/libs/LibFillResults.sol";
 import "@0x/contracts-interfaces/contracts/protocol/Exchange/IMatchOrders.sol";
 
-
-contract MMatchOrders is
-    IMatchOrders
-{
+contract MMatchOrders is IMatchOrders {
     /// @dev Validates context for matchOrders. Succeeds or throws.
     /// @param leftOrder First order to match.
     /// @param rightOrder Second order to match.
     function assertValidMatch(
         LibOrder.Order memory leftOrder,
         LibOrder.Order memory rightOrder
-    )
-        internal
-        pure;
+    ) internal pure;
 
     /// @dev Calculates fill amounts for the matched orders.
     ///      Each order is filled at their respective price point. However, the calculations are
@@ -53,6 +48,8 @@ contract MMatchOrders is
     )
         internal
         pure
-        returns (LibFillResults.MatchedFillResults memory matchedFillResults);
+        returns (
+        LibFillResults.MatchedFillResults memory matchedFillResults
+    );
 
 }

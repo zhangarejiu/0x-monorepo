@@ -20,27 +20,15 @@ pragma solidity ^0.4.24;
 
 import "@0x/contracts-interfaces/contracts/protocol/Exchange/ISignatureValidator.sol";
 
-
-contract MSignatureValidator is
-    ISignatureValidator
-{
+contract MSignatureValidator is ISignatureValidator {
     event SignatureValidatorApproval(
-        address indexed signerAddress,     // Address that approves or disapproves a contract to verify signatures.
-        address indexed validatorAddress,  // Address of signature validator contract.
-        bool approved                      // Approval or disapproval of validator contract.
+        address indexed signerAddress, // Address that approves or disapproves a contract to verify signatures.
+        address indexed validatorAddress, // Address of signature validator contract.
+        bool approved // Approval or disapproval of validator contract.
     );
 
     // Allowed signature types.
-    enum SignatureType {
-        Illegal,         // 0x00, default value
-        Invalid,         // 0x01
-        EIP712,          // 0x02
-        EthSign,         // 0x03
-        Wallet,          // 0x04
-        Validator,       // 0x05
-        PreSigned,       // 0x06
-        NSignatureTypes  // 0x07, number of signature types. Always leave at end.
-    }
+    enum SignatureType {Illegal, Invalid, EIP712, EthSign, Wallet, Validator, PreSigned, NSignatureTypes} // 0x00, default value // 0x01 // 0x02 // 0x03 // 0x04 // 0x05 // 0x06 // 0x07, number of signature types. Always leave at end.
 
     /// @dev Verifies signature using logic defined by Wallet contract.
     /// @param hash Any 32 byte hash.
@@ -52,10 +40,7 @@ contract MSignatureValidator is
         bytes32 hash,
         address walletAddress,
         bytes signature
-    )
-        internal
-        view
-        returns (bool isValid);
+    ) internal view returns (bool isValid);
 
     /// @dev Verifies signature using logic defined by Validator contract.
     /// @param validatorAddress Address of validator contract.
@@ -68,8 +53,5 @@ contract MSignatureValidator is
         bytes32 hash,
         address signerAddress,
         bytes signature
-    )
-        internal
-        view
-        returns (bool isValid);
+    ) internal view returns (bool isValid);
 }

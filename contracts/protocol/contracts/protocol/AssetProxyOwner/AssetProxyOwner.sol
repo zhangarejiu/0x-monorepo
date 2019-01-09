@@ -21,30 +21,38 @@ pragma solidity 0.4.24;
 import "@0x/contracts-multisig/contracts/multisig/MultiSigWalletWithTimeLock.sol";
 import "@0x/contracts-utils/contracts/utils/LibBytes/LibBytes.sol";
 
-
-contract AssetProxyOwner is
-    MultiSigWalletWithTimeLock
-{
+contract AssetProxyOwner is MultiSigWalletWithTimeLock {
     using LibBytes for bytes;
 
-    event AssetProxyRegistration(address assetProxyContract, bool isRegistered);
+    event AssetProxyRegistration(
+        address assetProxyContract,
+        bool isRegistered
+    );
 
     // Mapping of AssetProxy contract address =>
     // if this contract is allowed to call the AssetProxy's `removeAuthorizedAddressAtIndex` method without a time lock.
-    mapping (address => bool) public isAssetProxyRegistered;
+    mapping(address => bool) public isAssetProxyRegistered;
 
-    bytes4 constant internal REMOVE_AUTHORIZED_ADDRESS_AT_INDEX_SELECTOR = bytes4(keccak256("removeAuthorizedAddressAtIndex(address,uint256)"));
+    bytes4 internal constant REMOVE_AUTHORIZED_ADDRESS_AT_INDEX_SELECTOR = bytes4(
+        keccak256(
+            "removeAuthorizedAddressAtIndex(address,uint256)"
+        )
+    );
 
     /// @dev Function will revert if the transaction does not call `removeAuthorizedAddressAtIndex`
     ///      on an approved AssetProxy contract.
-    modifier validRemoveAuthorizedAddressAtIndexTx(uint256 transactionId) {
+    modifier validRemoveAuthorizedAddressAtIndexTx(
+        uint256 transactionId
+    ) {
         Transaction storage txn = transactions[transactionId];
         require(
             isAssetProxyRegistered[txn.destination],
             "UNREGISTERED_ASSET_PROXY"
         );
         require(
-            txn.data.readBytes4(0) == REMOVE_AUTHORIZED_ADDRESS_AT_INDEX_SELECTOR,
+            txn.data.readBytes4(
+                0
+            ) == REMOVE_AUTHORIZED_ADDRESS_AT_INDEX_SELECTOR,
             "INVALID_FUNCTION_SELECTOR"
         );
         _;
@@ -56,7 +64,7 @@ contract AssetProxyOwner is
     /// @param _assetProxyContracts Array of AssetProxy contract addresses.
     /// @param _required Number of required confirmations.
     /// @param _secondsTimeLocked Duration needed after a transaction is confirmed and before it becomes executable, in seconds.
-    constructor (
+    constructor(
         address[] memory _owners,
         address[] memory _assetProxyContracts,
         uint256 _required,
@@ -79,18 +87,22 @@ contract AssetProxyOwner is
     ///      `removeAuthorizedAddressAtIndex` without a timelock.
     /// @param assetProxyContract Address of AssetProxy contract.
     /// @param isRegistered Status of approval for AssetProxy contract.
-    function registerAssetProxy(address assetProxyContract, bool isRegistered)
-        public
-        onlyWallet
-        notNull(assetProxyContract)
-    {
+    function registerAssetProxy(
+        address assetProxyContract,
+        bool isRegistered
+    ) public onlyWallet notNull(assetProxyContract) {
         isAssetProxyRegistered[assetProxyContract] = isRegistered;
-        emit AssetProxyRegistration(assetProxyContract, isRegistered);
+        emit AssetProxyRegistration(
+            assetProxyContract,
+            isRegistered
+        );
     }
 
     /// @dev Allows execution of `removeAuthorizedAddressAtIndex` without time lock.
     /// @param transactionId Transaction ID.
-    function executeRemoveAuthorizedAddressAtIndex(uint256 transactionId)
+    function executeRemoveAuthorizedAddressAtIndex(
+        uint256 transactionId
+    )
         public
         notExecuted(transactionId)
         fullyConfirmed(transactionId)
@@ -98,7 +110,12 @@ contract AssetProxyOwner is
     {
         Transaction storage txn = transactions[transactionId];
         txn.executed = true;
-        if (external_call(txn.destination, txn.value, txn.data.length, txn.data)) {
+        if (external_call(
+            txn.destination,
+            txn.value,
+            txn.data.length,
+            txn.data
+        )) {
             emit Execution(transactionId);
         } else {
             emit ExecutionFailure(transactionId);

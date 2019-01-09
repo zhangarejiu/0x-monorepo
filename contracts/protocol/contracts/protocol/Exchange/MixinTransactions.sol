@@ -22,15 +22,10 @@ import "./mixins/MSignatureValidator.sol";
 import "./mixins/MTransactions.sol";
 import "@0x/contracts-libs/contracts/libs/LibEIP712.sol";
 
-
-contract MixinTransactions is
-    LibEIP712,
-    MSignatureValidator,
-    MTransactions
-{
+contract MixinTransactions is LibEIP712, MSignatureValidator, MTransactions {
     // Mapping of transaction hash => executed
     // This prevents transactions from being executed more than once.
-    mapping (bytes32 => bool) public transactions;
+    mapping(bytes32 => bool) public transactions;
 
     // Address of current transaction signer
     address public currentContextAddress;
@@ -45,20 +40,16 @@ contract MixinTransactions is
         address signerAddress,
         bytes data,
         bytes signature
-    )
-        external
-    {
+    ) external {
         // Prevent reentrancy
         require(
             currentContextAddress == address(0),
             "REENTRANCY_ILLEGAL"
         );
 
-        bytes32 transactionHash = hashEIP712Message(hashZeroExTransaction(
-            salt,
-            signerAddress,
-            data
-        ));
+        bytes32 transactionHash = hashEIP712Message(
+            hashZeroExTransaction(salt, signerAddress, data)
+        );
 
         // Validate transaction has not been executed
         require(
@@ -104,11 +95,7 @@ contract MixinTransactions is
         uint256 salt,
         address signerAddress,
         bytes memory data
-    )
-        internal
-        pure
-        returns (bytes32 result)
-    {
+    ) internal pure returns (bytes32 result) {
         bytes32 schemaHash = EIP712_ZEROEX_TRANSACTION_SCHEMA_HASH;
         bytes32 dataHash = keccak256(data);
 
@@ -124,10 +111,16 @@ contract MixinTransactions is
             // Load free memory pointer
             let memPtr := mload(64)
 
-            mstore(memPtr, schemaHash)                                                               // hash of schema
-            mstore(add(memPtr, 32), salt)                                                            // salt
-            mstore(add(memPtr, 64), and(signerAddress, 0xffffffffffffffffffffffffffffffffffffffff))  // signerAddress
-            mstore(add(memPtr, 96), dataHash)                                                        // hash of data
+            mstore(memPtr, schemaHash) // hash of schema
+            mstore(add(memPtr, 32), salt) // salt
+            mstore(
+                add(memPtr, 64),
+                and(
+                    signerAddress,
+                    0xffffffffffffffffffffffffffffffffffffffff
+                )
+            ) // signerAddress
+            mstore(add(memPtr, 96), dataHash) // hash of data
 
             // Compute hash
             result := keccak256(memPtr, 128)
@@ -146,7 +139,9 @@ contract MixinTransactions is
         returns (address)
     {
         address currentContextAddress_ = currentContextAddress;
-        address contextAddress = currentContextAddress_ == address(0) ? msg.sender : currentContextAddress_;
+        address contextAddress = currentContextAddress_ == address(
+            0
+        ) ? msg.sender : currentContextAddress_;
         return contextAddress;
     }
 }

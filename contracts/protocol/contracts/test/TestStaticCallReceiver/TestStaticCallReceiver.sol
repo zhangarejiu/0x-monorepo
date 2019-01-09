@@ -20,10 +20,8 @@ pragma solidity 0.4.24;
 
 import "@0x/contracts-tokens/contracts/tokens/ERC20Token/IERC20Token.sol";
 
-
 // solhint-disable no-unused-vars
 contract TestStaticCallReceiver {
-
     uint256 internal state = 1;
 
     /// @dev Updates state and returns true. Intended to be used with `Validator` signature type.
@@ -35,10 +33,7 @@ contract TestStaticCallReceiver {
         bytes32 hash,
         address signerAddress,
         bytes signature
-    )
-        external
-        returns (bool isValid)
-    {
+    ) external returns (bool isValid) {
         updateState();
         return true;
     }
@@ -47,10 +42,7 @@ contract TestStaticCallReceiver {
     /// @param hash Message hash that is signed.
     /// @param signature Proof of signing.
     /// @return Validity of order signature.
-    function isValidSignature(
-        bytes32 hash,
-        bytes signature
-    )
+    function isValidSignature(bytes32 hash, bytes signature)
         external
         returns (bool isValid)
     {
@@ -66,16 +58,12 @@ contract TestStaticCallReceiver {
         address token,
         address spender,
         uint256 value
-    )
-        external
-    {
+    ) external {
         IERC20Token(token).approve(spender, value);
     }
 
     /// @dev Increments state variable.
-    function updateState()
-        internal
-    {
+    function updateState() internal {
         state++;
     }
 }

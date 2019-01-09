@@ -19,18 +19,17 @@ pragma solidity ^0.4.24;
 
 import "@0x/contracts-interfaces/contracts/protocol/Exchange/ITransactions.sol";
 
-
-contract MTransactions is
-    ITransactions
-{
+contract MTransactions is ITransactions {
     // Hash for the EIP712 ZeroEx Transaction Schema
-    bytes32 constant internal EIP712_ZEROEX_TRANSACTION_SCHEMA_HASH = keccak256(abi.encodePacked(
-        "ZeroExTransaction(",
-        "uint256 salt,",
-        "address signerAddress,",
-        "bytes data",
-        ")"
-    ));
+    bytes32 internal constant EIP712_ZEROEX_TRANSACTION_SCHEMA_HASH = keccak256(
+        abi.encodePacked(
+            "ZeroExTransaction(",
+            "uint256 salt,",
+            "address signerAddress,",
+            "bytes data",
+            ")"
+        )
+    );
 
     /// @dev Calculates EIP712 hash of the Transaction.
     /// @param salt Arbitrary number to ensure uniqueness of transaction hash.
@@ -41,10 +40,7 @@ contract MTransactions is
         uint256 salt,
         address signerAddress,
         bytes memory data
-    )
-        internal
-        pure
-        returns (bytes32 result);
+    ) internal pure returns (bytes32 result);
 
     /// @dev The current function will be called in the context of this address (either 0x transaction signer or `msg.sender`).
     ///      If calling a fill function, this address will represent the taker.

@@ -24,16 +24,7 @@ import "./mixins/MMatchOrders.sol";
 import "./mixins/MTransactions.sol";
 import "./mixins/MAssetProxyDispatcher.sol";
 
-
-contract MixinMatchOrders is
-    ReentrancyGuard,
-    LibConstants,
-    LibMath,
-    MAssetProxyDispatcher,
-    MExchangeCore,
-    MMatchOrders,
-    MTransactions
-{
+contract MixinMatchOrders is ReentrancyGuard, LibConstants, LibMath, MAssetProxyDispatcher, MExchangeCore, MMatchOrders, MTransactions {
     /// @dev Match two complementary orders that have a profitable spread.
     ///      Each order is filled at their respective price point. However, the calculations are
     ///      carried out as though the orders are both being filled at the right order's price point.
@@ -51,7 +42,9 @@ contract MixinMatchOrders is
     )
         public
         nonReentrant
-        returns (LibFillResults.MatchedFillResults memory matchedFillResults)
+        returns (
+        LibFillResults.MatchedFillResults memory matchedFillResults
+    )
     {
         // We assume that rightOrder.takerAssetData == leftOrder.makerAssetData and rightOrder.makerAssetData == leftOrder.takerAssetData.
         // If this assumption isn't true, the match will fail at signature validation.
@@ -59,12 +52,16 @@ contract MixinMatchOrders is
         rightOrder.takerAssetData = leftOrder.makerAssetData;
 
         // Get left & right order info
-        LibOrder.OrderInfo memory leftOrderInfo = getOrderInfo(leftOrder);
-        LibOrder.OrderInfo memory rightOrderInfo = getOrderInfo(rightOrder);
+        LibOrder.OrderInfo memory leftOrderInfo = getOrderInfo(
+            leftOrder
+        );
+        LibOrder.OrderInfo memory rightOrderInfo = getOrderInfo(
+            rightOrder
+        );
 
         // Fetch taker address
         address takerAddress = getCurrentContextAddress();
-        
+
         // Either our context is valid or we revert
         assertFillableOrder(
             leftOrder,
@@ -103,7 +100,7 @@ contract MixinMatchOrders is
             matchedFillResults.right.takerAssetFilledAmount,
             matchedFillResults.right.makerAssetFilledAmount
         );
-        
+
         // Update exchange state
         updateFilledState(
             leftOrder,
@@ -137,10 +134,7 @@ contract MixinMatchOrders is
     function assertValidMatch(
         LibOrder.Order memory leftOrder,
         LibOrder.Order memory rightOrder
-    )
-        internal
-        pure
-    {
+    ) internal pure {
         // Make sure there is a profitable spread.
         // There is a profitable spread iff the cost per unit bought (OrderA.MakerAmount/OrderA.TakerAmount) for each order is greater
         // than the profit per unit sold of the matched order (OrderB.TakerAmount/OrderB.MakerAmount).
@@ -150,8 +144,13 @@ contract MixinMatchOrders is
         // <rightOrder.makerAssetAmount> / <rightOrder.takerAssetAmount> >= <leftOrder.takerAssetAmount> / <leftOrder.makerAssetAmount>
         // These equations can be combined to get the following:
         require(
-            safeMul(leftOrder.makerAssetAmount, rightOrder.makerAssetAmount) >=
-            safeMul(leftOrder.takerAssetAmount, rightOrder.takerAssetAmount),
+            safeMul(
+                leftOrder.makerAssetAmount,
+                rightOrder.makerAssetAmount
+            ) >= safeMul(
+                leftOrder.takerAssetAmount,
+                rightOrder.takerAssetAmount
+            ),
             "NEGATIVE_SPREAD_REQUIRED"
         );
     }
@@ -173,16 +172,24 @@ contract MixinMatchOrders is
     )
         internal
         pure
-        returns (LibFillResults.MatchedFillResults memory matchedFillResults)
+        returns (
+        LibFillResults.MatchedFillResults memory matchedFillResults
+    )
     {
         // Derive maker asset amounts for left & right orders, given store taker assert amounts
-        uint256 leftTakerAssetAmountRemaining = safeSub(leftOrder.takerAssetAmount, leftOrderTakerAssetFilledAmount);
+        uint256 leftTakerAssetAmountRemaining = safeSub(
+            leftOrder.takerAssetAmount,
+            leftOrderTakerAssetFilledAmount
+        );
         uint256 leftMakerAssetAmountRemaining = safeGetPartialAmountFloor(
             leftOrder.makerAssetAmount,
             leftOrder.takerAssetAmount,
             leftTakerAssetAmountRemaining
         );
-        uint256 rightTakerAssetAmountRemaining = safeSub(rightOrder.takerAssetAmount, rightOrderTakerAssetFilledAmount);
+        uint256 rightTakerAssetAmountRemaining = safeSub(
+            rightOrder.takerAssetAmount,
+            rightOrderTakerAssetFilledAmount
+        );
         uint256 rightMakerAssetAmountRemaining = safeGetPartialAmountFloor(
             rightOrder.makerAssetAmount,
             rightOrder.takerAssetAmount,
@@ -203,7 +210,7 @@ contract MixinMatchOrders is
             matchedFillResults.right.makerAssetFilledAmount = rightMakerAssetAmountRemaining;
             matchedFillResults.right.takerAssetFilledAmount = rightTakerAssetAmountRemaining;
             matchedFillResults.left.takerAssetFilledAmount = matchedFillResults.right.makerAssetFilledAmount;
-            // Round down to ensure the maker's exchange rate does not exceed the price specified by the order. 
+            // Round down to ensure the maker's exchange rate does not exceed the price specified by the order.
             // We favor the maker when the exchange rate must be rounded.
             matchedFillResults.left.makerAssetFilledAmount = safeGetPartialAmountFloor(
                 leftOrder.makerAssetAmount,
@@ -268,9 +275,7 @@ contract MixinMatchOrders is
         LibOrder.Order memory rightOrder,
         address takerAddress,
         LibFillResults.MatchedFillResults memory matchedFillResults
-    )
-        private
-    {
+    ) private {
         bytes memory zrxAssetData = ZRX_ASSET_DATA;
         // Order makers and taker
         dispatchTransferFrom(

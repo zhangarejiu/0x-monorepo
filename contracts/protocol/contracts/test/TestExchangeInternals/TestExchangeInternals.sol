@@ -21,15 +21,9 @@ pragma experimental ABIEncoderV2;
 
 import "../../protocol/Exchange/Exchange.sol";
 
-
 // solhint-disable no-empty-blocks
-contract TestExchangeInternals is
-    Exchange
-{
-    constructor ()
-        public
-        Exchange("")
-    {}
+contract TestExchangeInternals is Exchange {
+    constructor() public Exchange("") {}
 
     /// @dev Adds properties of both FillResults instances.
     ///      Modifies the first FillResults instance specified.
@@ -38,11 +32,10 @@ contract TestExchangeInternals is
     /// @param totalFillResults Fill results instance that will be added onto.
     /// @param singleFillResults Fill results instance that will be added to totalFillResults.
     /// @return newTotalFillResults The result of adding singleFillResults to totalFilResults.
-    function publicAddFillResults(FillResults memory totalFillResults, FillResults memory singleFillResults)
-        public
-        pure
-        returns (FillResults memory)
-    {
+    function publicAddFillResults(
+        FillResults memory totalFillResults,
+        FillResults memory singleFillResults
+    ) public pure returns (FillResults memory) {
         addFillResults(totalFillResults, singleFillResults);
         return totalFillResults;
     }
@@ -54,12 +47,11 @@ contract TestExchangeInternals is
     function publicCalculateFillResults(
         Order memory order,
         uint256 takerAssetFilledAmount
-    )
-        public
-        pure
-        returns (FillResults memory fillResults)
-    {
-        return calculateFillResults(order, takerAssetFilledAmount);
+    ) public pure returns (FillResults memory fillResults) {
+        return calculateFillResults(
+            order,
+            takerAssetFilledAmount
+        );
     }
 
     /// @dev Calculates partial value given a numerator and denominator.
@@ -72,12 +64,12 @@ contract TestExchangeInternals is
         uint256 numerator,
         uint256 denominator,
         uint256 target
-    )
-        public
-        pure
-        returns (uint256 partialAmount)
-    {
-        return safeGetPartialAmountFloor(numerator, denominator, target);
+    ) public pure returns (uint256 partialAmount) {
+        return safeGetPartialAmountFloor(
+            numerator,
+            denominator,
+            target
+        );
     }
 
     /// @dev Calculates partial value given a numerator and denominator.
@@ -90,12 +82,12 @@ contract TestExchangeInternals is
         uint256 numerator,
         uint256 denominator,
         uint256 target
-    )
-        public
-        pure
-        returns (uint256 partialAmount)
-    {
-        return safeGetPartialAmountCeil(numerator, denominator, target);
+    ) public pure returns (uint256 partialAmount) {
+        return safeGetPartialAmountCeil(
+            numerator,
+            denominator,
+            target
+        );
     }
 
     /// @dev Calculates partial value given a numerator and denominator.
@@ -107,12 +99,12 @@ contract TestExchangeInternals is
         uint256 numerator,
         uint256 denominator,
         uint256 target
-    )
-        public
-        pure
-        returns (uint256 partialAmount)
-    {
-        return getPartialAmountFloor(numerator, denominator, target);
+    ) public pure returns (uint256 partialAmount) {
+        return getPartialAmountFloor(
+            numerator,
+            denominator,
+            target
+        );
     }
 
     /// @dev Calculates partial value given a numerator and denominator.
@@ -124,12 +116,12 @@ contract TestExchangeInternals is
         uint256 numerator,
         uint256 denominator,
         uint256 target
-    )
-        public
-        pure
-        returns (uint256 partialAmount)
-    {
-        return getPartialAmountCeil(numerator, denominator, target);
+    ) public pure returns (uint256 partialAmount) {
+        return getPartialAmountCeil(
+            numerator,
+            denominator,
+            target
+        );
     }
 
     /// @dev Checks if rounding error >= 0.1%.
@@ -141,12 +133,12 @@ contract TestExchangeInternals is
         uint256 numerator,
         uint256 denominator,
         uint256 target
-    )
-        public
-        pure
-        returns (bool isError)
-    {
-        return isRoundingErrorFloor(numerator, denominator, target);
+    ) public pure returns (bool isError) {
+        return isRoundingErrorFloor(
+            numerator,
+            denominator,
+            target
+        );
     }
 
     /// @dev Checks if rounding error >= 0.1%.
@@ -158,14 +150,14 @@ contract TestExchangeInternals is
         uint256 numerator,
         uint256 denominator,
         uint256 target
-    )
-        public
-        pure
-        returns (bool isError)
-    {
-        return isRoundingErrorCeil(numerator, denominator, target);
+    ) public pure returns (bool isError) {
+        return isRoundingErrorCeil(
+            numerator,
+            denominator,
+            target
+        );
     }
- 
+
     /// @dev Updates state with results of a fill order.
     /// @param order that was filled.
     /// @param takerAddress Address of taker who filled the order.
@@ -177,9 +169,7 @@ contract TestExchangeInternals is
         bytes32 orderHash,
         uint256 orderTakerAssetFilledAmount,
         FillResults memory fillResults
-    )
-        public
-    {
+    ) public {
         updateFilledState(
             order,
             takerAddress,

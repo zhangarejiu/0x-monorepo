@@ -21,11 +21,7 @@ pragma solidity ^0.4.24;
 import "@0x/contracts-utils/contracts/utils/Ownable/Ownable.sol";
 import "./mixins/MAuthorizable.sol";
 
-
-contract MixinAuthorizable is
-    Ownable,
-    MAuthorizable
-{
+contract MixinAuthorizable is Ownable, MAuthorizable {
     /// @dev Only authorized addresses can invoke functions with this modifier.
     modifier onlyAuthorized {
         require(
@@ -35,7 +31,7 @@ contract MixinAuthorizable is
         _;
     }
 
-    mapping (address => bool) public authorized;
+    mapping(address => bool) public authorized;
     address[] public authorities;
 
     /// @dev Authorizes an address.
@@ -82,10 +78,7 @@ contract MixinAuthorizable is
     function removeAuthorizedAddressAtIndex(
         address target,
         uint256 index
-    )
-        external
-        onlyOwner
-    {
+    ) external onlyOwner {
         require(
             authorized[target],
             "TARGET_NOT_AUTHORIZED"

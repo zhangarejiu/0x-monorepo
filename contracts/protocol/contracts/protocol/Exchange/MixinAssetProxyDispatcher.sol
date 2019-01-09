@@ -22,13 +22,9 @@ import "@0x/contracts-utils/contracts/utils/Ownable/Ownable.sol";
 import "./mixins/MAssetProxyDispatcher.sol";
 import "@0x/contracts-interfaces/contracts/protocol/AssetProxy/IAssetProxy.sol";
 
-
-contract MixinAssetProxyDispatcher is
-    Ownable,
-    MAssetProxyDispatcher
-{
+contract MixinAssetProxyDispatcher is Ownable, MAssetProxyDispatcher {
     // Mapping from Asset Proxy Id's to their respective Asset Proxy
-    mapping (bytes4 => IAssetProxy) public assetProxies;
+    mapping(bytes4 => IAssetProxy) public assetProxies;
 
     /// @dev Registers an asset proxy to its asset proxy id.
     ///      Once an asset proxy is registered, it cannot be unregistered.
@@ -37,10 +33,14 @@ contract MixinAssetProxyDispatcher is
         external
         onlyOwner
     {
-        IAssetProxy assetProxyContract = IAssetProxy(assetProxy);
+        IAssetProxy assetProxyContract = IAssetProxy(
+            assetProxy
+        );
 
         // Ensure that no asset proxy exists with current id.
-        bytes4 assetProxyId = assetProxyContract.getProxyId();
+        bytes4 assetProxyId = assetProxyContract.getProxyId(
+
+        );
         address currentAssetProxy = assetProxies[assetProxyId];
         require(
             currentAssetProxy == address(0),
@@ -49,10 +49,7 @@ contract MixinAssetProxyDispatcher is
 
         // Add asset proxy and log registration.
         assetProxies[assetProxyId] = assetProxyContract;
-        emit AssetProxyRegistered(
-            assetProxyId,
-            assetProxy
-        );
+        emit AssetProxyRegistered(assetProxyId, assetProxy);
     }
 
     /// @dev Gets an asset proxy.
@@ -76,9 +73,7 @@ contract MixinAssetProxyDispatcher is
         address from,
         address to,
         uint256 amount
-    )
-        internal
-    {
+    ) internal {
         // Do nothing if no amount should be transferred.
         if (amount > 0 && from != to) {
             // Ensure assetData length is valid
@@ -86,12 +81,12 @@ contract MixinAssetProxyDispatcher is
                 assetData.length > 3,
                 "LENGTH_GREATER_THAN_3_REQUIRED"
             );
-            
+
             // Lookup assetProxy. We do not use `LibBytes.readBytes4` for gas efficiency reasons.
             bytes4 assetProxyId;
             assembly {
-                assetProxyId := and(mload(
-                    add(assetData, 32)),
+                assetProxyId := and(
+                    mload(add(assetData, 32)),
                     0xFFFFFFFF00000000000000000000000000000000000000000000000000000000
                 )
             }
@@ -102,10 +97,10 @@ contract MixinAssetProxyDispatcher is
                 assetProxy != address(0),
                 "ASSET_PROXY_DOES_NOT_EXIST"
             );
-            
+
             // We construct calldata for the `assetProxy.transferFrom` ABI.
             // The layout of this calldata is in the table below.
-            // 
+            //
             // | Area     | Offset | Length  | Contents                                    |
             // | -------- |--------|---------|-------------------------------------------- |
             // | Header   | 0      | 4       | function selector                           |
@@ -125,31 +120,55 @@ contract MixinAssetProxyDispatcher is
                 // `dataAreaLength` is the total number of words needed to store `assetData`
                 //  As-per the ABI spec, this value is padded up to the nearest multiple of 32,
                 //  and includes 32-bytes for length.
-                let dataAreaLength := and(add(mload(assetData), 63), 0xFFFFFFFFFFFE0)
+                let dataAreaLength := and(
+                    add(mload(assetData), 63),
+                    0xFFFFFFFFFFFE0
+                )
                 // `cdEnd` is the end of the calldata for `assetProxy.transferFrom`.
-                let cdEnd := add(cdStart, add(132, dataAreaLength))
+                let cdEnd := add(
+                    cdStart,
+                    add(132, dataAreaLength)
+                )
 
-                
                 /////// Setup Header Area ///////
                 // This area holds the 4-byte `transferFromSelector`.
                 // bytes4(keccak256("transferFrom(bytes,address,address,uint256)")) = 0xa85e59e4
-                mstore(cdStart, 0xa85e59e400000000000000000000000000000000000000000000000000000000)
-                
+                mstore(
+                    cdStart,
+                    0xa85e59e400000000000000000000000000000000000000000000000000000000
+                )
+
                 /////// Setup Params Area ///////
                 // Each parameter is padded to 32-bytes. The entire Params Area is 128 bytes.
                 // Notes:
                 //   1. The offset to `assetData` is the length of the Params Area (128 bytes).
                 //   2. A 20-byte mask is applied to addresses to zero-out the unused bytes.
                 mstore(add(cdStart, 4), 128)
-                mstore(add(cdStart, 36), and(from, 0xffffffffffffffffffffffffffffffffffffffff))
-                mstore(add(cdStart, 68), and(to, 0xffffffffffffffffffffffffffffffffffffffff))
+                mstore(
+                    add(cdStart, 36),
+                    and(
+                        from,
+                        0xffffffffffffffffffffffffffffffffffffffff
+                    )
+                )
+                mstore(
+                    add(cdStart, 68),
+                    and(
+                        to,
+                        0xffffffffffffffffffffffffffffffffffffffff
+                    )
+                )
                 mstore(add(cdStart, 100), amount)
-                
+
                 /////// Setup Data Area ///////
                 // This area holds `assetData`.
                 let dataArea := add(cdStart, 132)
                 // solhint-disable-next-line no-empty-blocks
-                for {} lt(dataArea, cdEnd) {} {
+                for {
+
+                } lt(dataArea, cdEnd) {
+
+                } {
                     mstore(dataArea, mload(assetData))
                     dataArea := add(dataArea, 32)
                     assetData := add(assetData, 32)
@@ -157,16 +176,16 @@ contract MixinAssetProxyDispatcher is
 
                 /////// Call `assetProxy.transferFrom` using the constructed calldata ///////
                 let success := call(
-                    gas,                    // forward all gas
-                    assetProxy,             // call address of asset proxy
-                    0,                      // don't send any ETH
-                    cdStart,                // pointer to start of input
-                    sub(cdEnd, cdStart),    // length of input  
-                    cdStart,                // write output over input
-                    512                     // reserve 512 bytes for output
+                    gas, // forward all gas
+                    assetProxy, // call address of asset proxy
+                    0, // don't send any ETH
+                    cdStart, // pointer to start of input
+                    sub(cdEnd, cdStart), // length of input
+                    cdStart, // write output over input
+                    512 // reserve 512 bytes for output
                 )
                 if iszero(success) {
-                    revert(cdStart, returndatasize())
+                    revert(cdStart, returndatasize)
                 }
             }
         }
