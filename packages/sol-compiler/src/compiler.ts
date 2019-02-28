@@ -32,6 +32,7 @@ import {
     getSourcesWithDependencies,
     getSourceTreeHash,
     makeContractPathsRelative,
+    parseDependencies,
     parseSolidityVersionRange,
     printCompilationErrorsAndWarnings,
 } from './utils/compiler';
@@ -138,9 +139,10 @@ export class Compiler {
     public async concatSourceAsync(): Promise<void> {
         const contractNames = this._getContractNamesToCompile();
         for (const contractName of contractNames) {
-            // const sourceCode = this._getConcatenatedSourceCode(contractName);
+            console.log('concatting');
+            const sourceCode = this._getConcatenatedSourceCode(contractName);
             console.log(contractName);
-            // console.log(sourceCode);
+            console.log(sourceCode);
         }
     }
     /**
@@ -517,44 +519,44 @@ export class Compiler {
     //     return compiled;
     // }
 
-    // private _getConcatenatedSourceCode(importPath: string): string {
-    //     const seen: string[] = [];
-    //     this._findSourceDependencyTree(importPath, seen);
-    //     const sources = [];
-    //     for (const file of seen) {
-    //         const contractSource = this._resolver.resolve(file);
-    //         sources.push(contractSource.source);
-    //     }
-    //     const concatenatedSourceCode = sources.join('\n');
-    //     return concatenatedSourceCode;
-    // }
+    private _getConcatenatedSourceCode(importPath: string): string {
+        const seen: string[] = [];
+        this._findSourceDependencyTree(importPath, seen);
+        const sources = [];
+        for (const file of seen) {
+            const contractSource = this._resolver.resolve(file);
+            sources.push(contractSource.source);
+        }
+        const concatenatedSourceCode = sources.join('\n');
+        return concatenatedSourceCode;
+    }
 
-    // private _findSourceDependencyTree(importPath: string, seen: string[] = []): any {
-    //     const contractSource = this._resolver.resolve(importPath);
-    //     const contractDependencies = parseDependencies(contractSource);
-    //     if (seen.indexOf(contractSource.path) !== -1) {
-    //         return undefined;
-    //     }
-    //     let dependencyTree: any;
-    //     if (contractDependencies.length === 0) {
-    //         dependencyTree = {
-    //             [contractSource.path]: {},
-    //         };
-    //     } else {
-    //         const dependencySourceTree = _.reduce(
-    //             contractDependencies,
-    //             (prev, curr) => {
-    //                 return { ...prev, ...this._findSourceDependencyTree(curr, seen) };
-    //             },
-    //             {},
-    //         );
-    //         dependencyTree = {
-    //             [contractSource.path]: dependencySourceTree,
-    //         };
-    //     }
-    //     seen.push(contractSource.path);
-    //     return dependencyTree;
-    // }
+    private _findSourceDependencyTree(importPath: string, seen: string[] = []): any {
+        const contractSource = this._resolver.resolve(importPath);
+        const contractDependencies = parseDependencies(contractSource);
+        if (seen.indexOf(contractSource.path) !== -1) {
+            return undefined;
+        }
+        let dependencyTree: any;
+        if (contractDependencies.length === 0) {
+            dependencyTree = {
+                [contractSource.path]: {},
+            };
+        } else {
+            const dependencySourceTree = _.reduce(
+                contractDependencies,
+                (prev, curr) => {
+                    return { ...prev, ...this._findSourceDependencyTree(curr, seen) };
+                },
+                {},
+            );
+            dependencyTree = {
+                [contractSource.path]: dependencySourceTree,
+            };
+        }
+        seen.push(contractSource.path);
+        return dependencyTree;
+    }
     // /**
     //  * Gets the source tree hash for a file and its dependencies.
     //  * @param fileName Name of contract file.
