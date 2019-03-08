@@ -14,7 +14,7 @@ import * as chai from 'chai';
 import { LogWithDecodedArgs } from 'ethereum-types';
 import * as _ from 'lodash';
 
-import { Erc1155Wrapper } from '../../erc1155/lib/src';
+import { Erc1155Wrapper } from '../../erc1155';
 import {
     artifacts,
     DummyERC1155ReceiverBatchTokenReceivedEventArgs,
